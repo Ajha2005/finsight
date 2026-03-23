@@ -2,7 +2,8 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from app.models.transaction import Transaction
 from datetime import datetime
-
+from app.ml.categorizer import categorize
+from app.ml.anomaly import detect_anomalies
 
 REQUIRED_COLUMNS = {"date", "description", "amount"}
 
@@ -95,14 +96,19 @@ def ingest_csv(file, db: Session) -> dict:
             date=row["date"],
             description=row["description"],
             amount=row["amount"],
+            category=categorize(row["description"]),  # ML categorization
         )
         db.add(transaction)
         saved += 1
 
     db.commit()
 
+    # Run anomaly detection on all transactions after ingestion
+    anomaly_result = detect_anomalies(db)
+
     return {
         "total_rows": len(df),
         "saved": saved,
-        "skipped_duplicates": skipped
+        "skipped_duplicates": skipped,
+        "anomaly_detection": anomaly_result
     }
