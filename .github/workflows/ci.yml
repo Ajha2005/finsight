@@ -1,0 +1,64 @@
+name: FinSight CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: finsight_user
+          POSTGRES_PASSWORD: finsight_pass
+          POSTGRES_DB: finsight_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=finsight_pass psql -h localhost -U finsight_user -d finsight_db -c "CREATE DATABASE finsight_db_test;"
+        env:
+          PGPASSWORD: finsight_pass
+
+      - name: Grant test DB permissions
+        run: |
+          PGPASSWORD=finsight_pass psql -h localhost -U finsight_user -d finsight_db_test -c "GRANT ALL ON SCHEMA public TO finsight_user;"
+        env:
+          PGPASSWORD: finsight_pass
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://finsight_user:finsight_pass@localhost:5432/finsight_db
+          API_KEY: mysecretapikey123
+          POSTGRES_USER: finsight_user
+          POSTGRES_PASSWORD: finsight_pass
+          POSTGRES_DB: finsight_db
+          ALERT_EMAIL_FROM: test@gmail.com
+          ALERT_EMAIL_TO: test@gmail.com
+          ALERT_EMAIL_PASSWORD: testpassword
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: 587
+        run: pytest tests/ -v
