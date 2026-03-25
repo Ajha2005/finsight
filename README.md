@@ -7,9 +7,9 @@ through a clean versioned REST API.
 ## Features
 
 - CSV ingestion with automatic cleaning and deduplication
-- ML-based transaction categorization (Day 2)
-- Anomaly detection using Isolation Forest (Day 2)
-- Scheduled weekly financial pulse reports (Day 4)
+- ML-based transaction categorization 
+- Anomaly detection using Isolation Forest 
+- Scheduled weekly financial pulse reports 
 - API key authentication
 - Fully containerized with Docker
 - CI/CD via GitHub Actions
