@@ -32,7 +32,7 @@ through a clean versioned REST API.
 
 1. Clone the repo
 ```bash
-   git clone https://github.com/yourusername/finsight.git
+   git clone https://github.com/Ajha2005/finsight.git
    cd finsight
 ```
 
