@@ -7,10 +7,24 @@ from app.models.transaction import Transaction
 
 
 def run_weekly_report():
-    """Job that runs every Monday at 8am — generates and emails the weekly report."""
     print("⏰ Running scheduled weekly report...")
     db = SessionLocal()
     try:
+        from datetime import date, timedelta
+        from app.models.transaction import Transaction
+
+        # Check if any transactions were uploaded this week
+        today = date.today()
+        start_of_week = today - timedelta(days=today.weekday())
+
+        recent = db.query(Transaction).filter(
+            Transaction.uploaded_at >= start_of_week
+        ).first()
+
+        if not recent:
+            print("⏭️  No new transactions this week, skipping report.")
+            return
+
         report = generate_weekly_report(db, weeks_ago=1)
         send_weekly_report_email(report)
         print("✅ Weekly report sent.")
